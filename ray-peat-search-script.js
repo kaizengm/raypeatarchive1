@@ -72,14 +72,26 @@ function searchContent(files, query) {
 // Main function to set up the search
 async function setupSearch() {
   try {
-    const files = await processAllFiles();
+    const loadingIndicator = document.getElementById('loadingIndicator');
     const searchInput = document.querySelector('input[type="text"]');
     const searchButton = document.querySelector('button');
     const resultsContainer = document.getElementById('searchResults');
 
-    if (!searchInput || !searchButton || !resultsContainer) {
+    if (!loadingIndicator || !searchInput || !searchButton || !resultsContainer) {
       throw new Error('Required DOM elements not found');
     }
+
+    // Show loading indicator
+    loadingIndicator.style.display = 'block';
+    searchInput.disabled = true;
+    searchButton.disabled = true;
+
+    const files = await processAllFiles();
+
+    // Hide loading indicator and enable search
+    loadingIndicator.style.display = 'none';
+    searchInput.disabled = false;
+    searchButton.disabled = false;
 
     searchButton.addEventListener('click', () => {
       const query = searchInput.value.trim();
@@ -121,7 +133,9 @@ async function setupSearch() {
   } catch (error) {
     console.error('Error setting up search:', error);
     const resultsContainer = document.getElementById('searchResults');
-    if (resultsContainer) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (resultsContainer && loadingIndicator) {
+      loadingIndicator.style.display = 'none';
       resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
     }
   }
