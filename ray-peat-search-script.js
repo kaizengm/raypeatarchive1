@@ -71,16 +71,17 @@ function searchContent(files, query) {
 
 // Main function to set up the search
 async function setupSearch() {
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const searchInput = document.querySelector('input[type="text"]');
+  const searchButton = document.querySelector('button');
+  const resultsContainer = document.getElementById('searchResults');
+
+  if (!loadingIndicator || !searchInput || !searchButton || !resultsContainer) {
+    console.error('Required DOM elements not found. Ensure all elements are present in the HTML.');
+    return;
+  }
+
   try {
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const searchInput = document.querySelector('input[type="text"]');
-    const searchButton = document.querySelector('button');
-    const resultsContainer = document.getElementById('searchResults');
-
-    if (!loadingIndicator || !searchInput || !searchButton || !resultsContainer) {
-      throw new Error('Required DOM elements not found');
-    }
-
     // Show loading indicator
     loadingIndicator.style.display = 'block';
     searchInput.disabled = true;
@@ -132,17 +133,15 @@ async function setupSearch() {
     console.log('Search setup complete');
   } catch (error) {
     console.error('Error setting up search:', error);
-    const resultsContainer = document.getElementById('searchResults');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    if (resultsContainer && loadingIndicator) {
-      loadingIndicator.style.display = 'none';
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    if (resultsContainer) {
       resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
     }
   }
 }
 
-// Initialize the search when the page loads
-window.addEventListener('load', () => {
-  console.log('Page loaded, initializing search');
+// Initialize the search when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM fully loaded, initializing search');
   setupSearch();
 });
