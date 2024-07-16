@@ -114,7 +114,9 @@ async function setupSearch() {
       }
       results.forEach(result => {
         const fileDiv = document.createElement('div');
-        fileDiv.innerHTML = `<h3 class="font-bold mt-4">${result.name}</h3>`;
+        const fileName = result.name.replace('.md', '.shtml');
+        const url = `https://raypeat.com/articles/articles/${fileName}`;
+        fileDiv.innerHTML = `<h3 class="font-bold mt-4"><a href="${url}" target="_blank">${result.name}</a></h3>`;
         result.snippets.forEach(snippet => {
           const snippetDiv = document.createElement('div');
           snippetDiv.innerHTML = snippet;
