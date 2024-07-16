@@ -59,9 +59,9 @@ function searchContent(files, query) {
       const snippets = file.content.split('\n')
         .filter(line => line.toLowerCase().includes(query.toLowerCase()))
         .map(line => {
-          return line.replace(regex, match => `<mark>${match}</mark>`);
+          return line.replace(regex, match => `<mark style="background-color: #DAF7A6">${match}</mark>`);
         });
-      results.push({ name: file.name, snippets: snippets });
+      results.push({ name: file.name, content: file.content, snippets: snippets });
     }
   });
   
@@ -94,15 +94,23 @@ async function setupSearch() {
     searchInput.disabled = false;
     searchButton.disabled = false;
 
-    searchButton.addEventListener('click', () => {
+    function performSearch() {
       const query = searchInput.value.trim();
-      console.log('Search button clicked. Query:', query);
+      console.log('Search initiated. Query:', query);
       if (query === '') {
         displayError('Please enter a search term.');
         return;
       }
       const results = searchContent(files, query);
       displayResults(results);
+    }
+
+    searchButton.addEventListener('click', performSearch);
+
+    searchInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        performSearch();
+      }
     });
 
     function displayResults(results) {
@@ -116,7 +124,8 @@ async function setupSearch() {
         const fileDiv = document.createElement('div');
         const fileName = result.name.replace('.md', '.shtml');
         const url = `https://raypeat.com/articles/articles/${fileName}`;
-        fileDiv.innerHTML = `<h3 class="font-bold mt-4"><a href="${url}" target="_blank">${result.name}</a></h3>`;
+        const firstSentence = result.content.split('.')[0] + '.';
+        fileDiv.innerHTML = `<h3 class="font-bold mt-4"><a href="${url}" target="_blank" style="color: blue; text-decoration: underline;">${firstSentence}</a></h3>`;
         result.snippets.forEach(snippet => {
           const snippetDiv = document.createElement('div');
           snippetDiv.innerHTML = snippet;
