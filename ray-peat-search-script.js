@@ -82,8 +82,12 @@ async function setupSearch() {
     }
 
     searchButton.addEventListener('click', () => {
-      const query = searchInput.value;
+      const query = searchInput.value.trim();
       console.log('Search button clicked. Query:', query);
+      if (query === '') {
+        displayError('Please enter a search term.');
+        return;
+      }
       const results = searchContent(files, query);
       displayResults(results);
     });
@@ -108,12 +112,17 @@ async function setupSearch() {
       });
     }
 
+    function displayError(message) {
+      console.error(message);
+      resultsContainer.innerHTML = `<p class="text-red-500">${message}</p>`;
+    }
+
     console.log('Search setup complete');
   } catch (error) {
     console.error('Error setting up search:', error);
     const resultsContainer = document.getElementById('searchResults');
     if (resultsContainer) {
-      resultsContainer.innerHTML = '<p>An error occurred while setting up the search. Please check the console for details.</p>';
+      resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
     }
   }
 }
