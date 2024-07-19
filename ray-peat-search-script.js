@@ -120,28 +120,63 @@ async function setupSearch() {
     return;
   }
 
+  let files = [];
+
   try {
     // Show loading indicator
     loadingIndicator.style.display = 'block';
     searchInput.disabled = true;
     searchButton.disabled = true;
 
-    const files = await processAllFiles();
+    files = await processAllFiles();
 
     // Hide loading indicator and enable search
-    setTimeout(() => {
-      loadingIndicator.style.display = 'none';
-      searchInput.disabled = false;
-      searchButton.disabled = false;
-    }, 1000); // Delay to show "Done" message
+    loadingIndicator.style.display = 'none';
+    searchInput.disabled = false;
+    searchButton.disabled = false;
 
-    // ... (rest of the setupSearch function remains unchanged)
+    // Set up search functionality
+    function performSearch() {
+      const query = searchInput.value.trim();
+      if (query.length === 0) {
+        resultsContainer.innerHTML = '';
+        return;
+      }
+
+      const results = searchContent(files, query);
+      displayResults(results);
+    }
+
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+
+    function displayResults(results) {
+      resultsContainer.innerHTML = '';
+      if (results.length === 0) {
+        resultsContainer.innerHTML = '<p>No results found.</p>';
+        return;
+      }
+
+      results.forEach((result) => {
+        const resultElement = document.createElement('div');
+        resultElement.className = 'result-item';
+        resultElement.innerHTML = `
+          <h3>${result.title || 'Untitled'}</h3>
+          <p>${result.context}</p>
+          <small>File: ${result.fileName}</small>
+        `;
+        resultsContainer.appendChild(resultElement);
+      });
+    }
+
   } catch (error) {
     console.error('Error setting up search:', error);
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
-    if (resultsContainer) {
-      resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
-    }
+    loadingIndicator.style.display = 'none';
+    resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
   }
 }
 
