@@ -61,7 +61,6 @@ function updateLoadingMessage(message) {
 
 // Search function
 function searchContent(files, query) {
-  function searchContent(files, query) {
   const results = [];
   const regex = new RegExp(query, 'gi');
 
