@@ -1,6 +1,3 @@
-// Global variable to store all fetched content
-let allContent = [];
-
 // Fetch data from GitHub
 async function fetchGitHubData() {
   try {
@@ -40,12 +37,14 @@ async function processAllFiles() {
     const files = await fetchGitHubData();
     updateLoadingMessage('Processing files...');
     console.log('Processing files:', files);
+    let allContent = [];
     for (const file of files) {
       const content = await fetchFileContent(file.download_url, file.name);
       allContent.push({ name: file.name, content: content });
     }
     console.log('Processed all files:', allContent);
     updateLoadingMessage('Done');
+    return allContent;
   } catch (error) {
     console.error('Error processing files:', error);
     throw error;
@@ -54,14 +53,12 @@ async function processAllFiles() {
 
 // Update loading message
 function updateLoadingMessage(message) {
-  const loadingIndicator = document.getElementById('loadingIndicator');
-  const loadingText = loadingIndicator.querySelector('p');
+  const loadingText = document.querySelector('#loadingIndicator p');
   if (loadingText) {
     loadingText.textContent = message;
   }
 }
 
-// Search function
 // Search function
 function searchContent(files, query) {
   console.log('Searching for:', query);
@@ -107,34 +104,14 @@ function searchContent(files, query) {
   return results;
 }
 
-// Display search results
-function displayResults(results) {
-  const resultsContainer = document.getElementById('searchResults');
-  resultsContainer.innerHTML = '';
-
-  if (results.length === 0) {
-    resultsContainer.innerHTML = '<p>No results found.</p>';
-    return;
-  }
-
-  results.forEach(result => {
-    const resultElement = document.createElement('div');
-    resultElement.className = 'mb-4';
-    resultElement.innerHTML = `
-      <h3 class="text-xl font-semibold mb-2">${result.name}</h3>
-      ${result.snippets.map(snippet => `<p class="mb-2">${snippet}</p>`).join('')}
-    `;
-    resultsContainer.appendChild(resultElement);
-  });
-}
-
 // Main function to set up the search
 async function setupSearch() {
   const loadingIndicator = document.getElementById('loadingIndicator');
   const searchInput = document.querySelector('input[type="text"]');
   const searchButton = document.querySelector('button');
+  const resultsContainer = document.getElementById('searchResults');
 
-  if (!loadingIndicator || !searchInput || !searchButton) {
+  if (!loadingIndicator || !searchInput || !searchButton || !resultsContainer) {
     console.error('Required DOM elements not found. Ensure all elements are present in the HTML.');
     return;
   }
@@ -145,14 +122,16 @@ async function setupSearch() {
     searchInput.disabled = true;
     searchButton.disabled = true;
 
-    await processAllFiles();
+    const files = await processAllFiles();
 
     // Hide loading indicator and enable search
-    loadingIndicator.style.display = 'none';
-    searchInput.disabled = false;
-    searchButton.disabled = false;
+    setTimeout(() => {
+      loadingIndicator.style.display = 'none';
+      searchInput.disabled = false;
+      searchButton.disabled = false;
+    }, 1000); // Delay to show "Done" message
 
-       searchButton.addEventListener('click', () => {
+    searchButton.addEventListener('click', () => {
       const query = searchInput.value.trim();
       if (query) {
         const searchResults = searchContent(files, query);
@@ -196,6 +175,7 @@ async function setupSearch() {
     }
   }
 }
+
 // Initialize the search when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded, initializing search');
