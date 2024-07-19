@@ -1,16 +1,29 @@
-<div class="container mx-auto p-6 bg-white rounded-lg shadow-lg">
-  <h1 id="ray-peat-search" class="text-3xl font-bold mb-6 text-center">Ray Peat Search</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ray Peat Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ray-peat-search-script.js"></script>
+</head>
+<body>
+    <div class="container mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <h1 id="ray-peat-search" class="text-3xl font-bold mb-6 text-center">Ray Peat Search</h1>
 
-  <div class="mb-6 flex">
-    <input type="text" placeholder="Enter search term" class="flex-grow p-2 border rounded-l">
-    <button class="bg-blue-500 text-white p-2 rounded-r">Search</button>
-  </div>
+        <div class="mb-6 flex">
+            <input type="text" placeholder="Enter search term" class="flex-grow p-2 border rounded-l-lg">
+            <button class="bg-blue-500 text-white p-2 rounded-r-lg">Search</button>
+        </div>
 
-  <div id="loadingIndicator" class="text-center mb-6" style="display: none;">
-    <img src="https://64.media.tumblr.com/f3c9c27da8351da3aee0452bffd7f6eb/tumblr_n71kcn1ch11ttqncoo1_500.gifv" alt="Loading" class="mx-auto w-80 h-80">
-    <p>Resources Loading...</p>
-  </div>
+        <div id="loadingIndicator" class="text-center mb-6" style="display: none;">
+            <img src="https://64.media.tumblr.com/f3c9c27da8351da3aee0452bffd7f6eb/tumblr_n71kcn1ch11ttqncoo1_500.gifv" alt="Loading" class="mx-auto w-80 h-80">
+            <p>Resources Loading...</p>
+        </div>
 
-  <div id="searchResults" class="space-y-4">
-  </div>
-</div>
+        <div id="searchResults" class="space-y-4">
+            <!-- Search results will be dynamically inserted here -->
+        </div>
+    </div>
+</body>
+</html>
