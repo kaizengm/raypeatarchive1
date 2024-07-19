@@ -62,47 +62,47 @@ function updateLoadingMessage(message) {
 }
 
 // Search function
-function searchContent(query) {
+// Search function
+function searchContent(files, query) {
   console.log('Searching for:', query);
   const results = [];
-  const words = query.toLowerCase().split(/\s+/);
-
-  allContent.forEach(file => {
-    const content = file.content.toLowerCase();
-    let matchFound = words.every(word => content.includes(word));
-
-    if (matchFound) {
-      const snippets = [];
+  const regex = new RegExp(query, 'gi');
+  
+  files.forEach(file => {
+    const matches = file.content.match(regex);
+    if (matches) {
       const lines = file.content.split('\n');
+      const title = lines[0].trim() || file.name; // Use first line as title, fallback to filename
       
-      lines.forEach((line, index) => {
-        const lowerLine = line.toLowerCase();
-        if (words.some(word => lowerLine.includes(word))) {
-          let snippet = line.trim();
+      const snippets = lines
+        .filter(line => line.toLowerCase().includes(query.toLowerCase()))
+        .map(line => {
+          const words = line.split(/\s+/);
+          const matchIndex = words.findIndex(word => word.toLowerCase().includes(query.toLowerCase()));
+          const start = Math.max(0, matchIndex - 7);
+          const end = Math.min(words.length, matchIndex + 8);
+          let snippet = words.slice(start, end).join(' ');
           
-          // Add context by including surrounding lines
-          if (index > 0) snippet = lines[index - 1].trim() + '\n' + snippet;
-          if (index < lines.length - 1) snippet += '\n' + lines[index + 1].trim();
+          // Ensure the snippet doesn't cut off mid-sentence
+          if (start > 0 && !snippet.match(/^[.!?]\s/)) {
+            snippet = '...' + snippet;
+          }
+          if (end < words.length && !snippet.match(/[.!?]$/)) {
+            snippet = snippet + '...';
+          }
           
-          // Highlight matching words
-          words.forEach(word => {
-            const regex = new RegExp(word, 'gi');
-            snippet = snippet.replace(regex, match => `<mark>${match}</mark>`);
-          });
-          
-          snippets.push(snippet);
-        }
-      });
-
-      if (snippets.length > 0) {
-        results.push({
-          name: file.name,
-          snippets: snippets
-        });
+          return snippet.replace(regex, match => `<mark>${match}</mark>`);
+        })
+        .slice(0, 5); // Limit to 5 snippets per file
+      
+      if (snippets.length === 5 && lines.length > 5) {
+        snippets.push('<span class="underline">Read more...</span>');
       }
+      
+      results.push({ name: title, snippets: snippets });
     }
   });
-
+  
   console.log('Search results:', results);
   return results;
 }
@@ -152,29 +152,50 @@ async function setupSearch() {
     searchInput.disabled = false;
     searchButton.disabled = false;
 
-    // Set up search functionality
-    searchButton.addEventListener('click', () => {
+       searchButton.addEventListener('click', () => {
       const query = searchInput.value.trim();
       if (query) {
-        const results = searchContent(query);
-        displayResults(results);
+        const searchResults = searchContent(files, query);
+        displayResults(searchResults);
       }
     });
 
-    // Enable search on Enter key press
-    searchInput.addEventListener('keypress', (event) => {
-      if (event.key === 'Enter') {
-        searchButton.click();
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        if (query) {
+          const searchResults = searchContent(files, query);
+          displayResults(searchResults);
+        }
       }
     });
 
+    function displayResults(results) {
+      resultsContainer.innerHTML = '';
+      if (results.length === 0) {
+        resultsContainer.innerHTML = '<p>No results found.</p>';
+      } else {
+        results.forEach(result => {
+          const resultElement = document.createElement('div');
+          resultElement.className = 'result-item mb-4';
+          resultElement.innerHTML = `
+            <h2 class="text-xl font-semibold mb-2">${result.name}</h2>
+            <ul class="list-disc pl-5">
+              ${result.snippets.map(snippet => `<li class="mb-1">${snippet}</li>`).join('')}
+            </ul>
+          `;
+          resultsContainer.appendChild(resultElement);
+        });
+      }
+    }
   } catch (error) {
     console.error('Error setting up search:', error);
-    loadingIndicator.style.display = 'none';
-    document.getElementById('searchResults').innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
+    if (loadingIndicator) loadingIndicator.style.display = 'none';
+    if (resultsContainer) {
+      resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
+    }
   }
 }
-
 // Initialize the search when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM fully loaded, initializing search');
