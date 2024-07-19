@@ -71,9 +71,9 @@ function searchContent(files, query) {
       const snippets = file.content.split('\n')
         .filter(line => line.toLowerCase().includes(query.toLowerCase()))
         .map(line => {
-          return line.replace(regex, match => `<mark style="background-color: #DAF7A6">${match}</mark>`);
+          return line.replace(regex, match => `<mark>${match}</mark>`);
         });
-      results.push({ name: file.name, content: file.content, snippets: snippets });
+      results.push({ name: file.name, snippets: snippets });
     }
   });
   
