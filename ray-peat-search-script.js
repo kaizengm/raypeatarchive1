@@ -63,20 +63,44 @@ function updateLoadingMessage(message) {
 function searchContent(files, query) {
   console.log('Searching for:', query);
   const results = [];
-  const regex = new RegExp(query, 'gi');
-  
+  const words = query.toLowerCase().split(/\s+/);
+
   files.forEach(file => {
-    const matches = file.content.match(regex);
-    if (matches) {
-      const snippets = file.content.split('\n')
-        .filter(line => line.toLowerCase().includes(query.toLowerCase()))
-        .map(line => {
-          return line.replace(regex, match => `<mark>${match}</mark>`);
+    const content = file.content.toLowerCase();
+    let matchFound = words.every(word => content.includes(word));
+
+    if (matchFound) {
+      const snippets = [];
+      const lines = file.content.split('\n');
+      
+      lines.forEach((line, index) => {
+        const lowerLine = line.toLowerCase();
+        if (words.some(word => lowerLine.includes(word))) {
+          let snippet = line.trim();
+          
+          // Add context by including surrounding lines
+          if (index > 0) snippet = lines[index - 1].trim() + '\n' + snippet;
+          if (index < lines.length - 1) snippet += '\n' + lines[index + 1].trim();
+          
+          // Highlight matching words
+          words.forEach(word => {
+            const regex = new RegExp(word, 'gi');
+            snippet = snippet.replace(regex, match => `<mark>${match}</mark>`);
+          });
+          
+          snippets.push(snippet);
+        }
+      });
+
+      if (snippets.length > 0) {
+        results.push({
+          name: file.name,
+          snippets: snippets
         });
-      results.push({ name: file.name, snippets: snippets });
+      }
     }
   });
-  
+
   console.log('Search results:', results);
   return results;
 }
