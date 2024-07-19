@@ -1,3 +1,6 @@
+// Global variable to store all fetched content
+let allContent = [];
+
 // Fetch data from GitHub
 async function fetchGitHubData() {
   try {
@@ -37,14 +40,12 @@ async function processAllFiles() {
     const files = await fetchGitHubData();
     updateLoadingMessage('Processing files...');
     console.log('Processing files:', files);
-    let allContent = [];
     for (const file of files) {
       const content = await fetchFileContent(file.download_url, file.name);
       allContent.push({ name: file.name, content: content });
     }
     console.log('Processed all files:', allContent);
     updateLoadingMessage('Done');
-    return allContent;
   } catch (error) {
     console.error('Error processing files:', error);
     throw error;
@@ -53,19 +54,20 @@ async function processAllFiles() {
 
 // Update loading message
 function updateLoadingMessage(message) {
-  const loadingText = document.querySelector('#loadingIndicator p');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const loadingText = loadingIndicator.querySelector('p');
   if (loadingText) {
     loadingText.textContent = message;
   }
 }
 
 // Search function
-function searchContent(files, query) {
+function searchContent(query) {
   console.log('Searching for:', query);
   const results = [];
   const words = query.toLowerCase().split(/\s+/);
 
-  files.forEach(file => {
+  allContent.forEach(file => {
     const content = file.content.toLowerCase();
     let matchFound = words.every(word => content.includes(word));
 
@@ -105,14 +107,34 @@ function searchContent(files, query) {
   return results;
 }
 
+// Display search results
+function displayResults(results) {
+  const resultsContainer = document.getElementById('searchResults');
+  resultsContainer.innerHTML = '';
+
+  if (results.length === 0) {
+    resultsContainer.innerHTML = '<p>No results found.</p>';
+    return;
+  }
+
+  results.forEach(result => {
+    const resultElement = document.createElement('div');
+    resultElement.className = 'mb-4';
+    resultElement.innerHTML = `
+      <h3 class="text-xl font-semibold mb-2">${result.name}</h3>
+      ${result.snippets.map(snippet => `<p class="mb-2">${snippet}</p>`).join('')}
+    `;
+    resultsContainer.appendChild(resultElement);
+  });
+}
+
 // Main function to set up the search
 async function setupSearch() {
   const loadingIndicator = document.getElementById('loadingIndicator');
   const searchInput = document.querySelector('input[type="text"]');
   const searchButton = document.querySelector('button');
-  const resultsContainer = document.getElementById('searchResults');
 
-  if (!loadingIndicator || !searchInput || !searchButton || !resultsContainer) {
+  if (!loadingIndicator || !searchInput || !searchButton) {
     console.error('Required DOM elements not found. Ensure all elements are present in the HTML.');
     return;
   }
@@ -123,22 +145,33 @@ async function setupSearch() {
     searchInput.disabled = true;
     searchButton.disabled = true;
 
-    const files = await processAllFiles();
+    await processAllFiles();
 
     // Hide loading indicator and enable search
-    setTimeout(() => {
-      loadingIndicator.style.display = 'none';
-      searchInput.disabled = false;
-      searchButton.disabled = false;
-    }, 1000); // Delay to show "Done" message
+    loadingIndicator.style.display = 'none';
+    searchInput.disabled = false;
+    searchButton.disabled = false;
 
-    // ... (rest of the setupSearch function remains unchanged)
+    // Set up search functionality
+    searchButton.addEventListener('click', () => {
+      const query = searchInput.value.trim();
+      if (query) {
+        const results = searchContent(query);
+        displayResults(results);
+      }
+    });
+
+    // Enable search on Enter key press
+    searchInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        searchButton.click();
+      }
+    });
+
   } catch (error) {
     console.error('Error setting up search:', error);
-    if (loadingIndicator) loadingIndicator.style.display = 'none';
-    if (resultsContainer) {
-      resultsContainer.innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
-    }
+    loadingIndicator.style.display = 'none';
+    document.getElementById('searchResults').innerHTML = '<p class="text-red-500">An error occurred while setting up the search. Please check the console for details.</p>';
   }
 }
 
